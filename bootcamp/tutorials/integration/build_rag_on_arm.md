@@ -65,7 +65,7 @@ milvus_client.create_collection(
     collection_name=collection_name,
     dimension=384,
     metric_type="IP",  # Inner product distance
-    consistency_level="Strong",  # Strong consistency level
+    consistency_level="Strong",  # Strong consistency level # If you have a large scale data, you can set it to "Bounded" to improve the performance. See https://milvus.io/docs/consistency.md#Consistency-Level for more details.
 )
 ```
 We use inner product distance as the default metric type. For more information about distance types, you can refer to [Similarity Metrics page](https://milvus.io/docs/metric.md?tab=floating)
