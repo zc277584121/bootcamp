@@ -6,11 +6,11 @@
 
 [MemPalace](https://github.com/MemPalace/mempalace) is a memory layer for coding agents and long-running development workflows. It can mine and search project memories, conversation notes, and other "drawers" that help an agent keep useful context across sessions.
 
-In this tutorial, we will configure MemPalace to use [Milvus](https://milvus.io/) as its storage backend. Native Milvus support is officially available starting with [MemPalace 3.6.0](https://github.com/MemPalace/mempalace/releases/tag/v3.6.0). The notebook uses Milvus Lite by default, so it can run locally or in Google Colab without a separate Milvus server. The same MemPalace configuration can also point to Milvus server or Zilliz Cloud for shared or production deployments.
+In this tutorial, we will configure MemPalace to use [Milvus](https://milvus.io/) as its storage backend. The notebook uses Milvus Lite by default, so it can run locally or in Google Colab without a separate Milvus server. The same MemPalace configuration can also point to Milvus server or Zilliz Cloud for shared or production deployments.
 
 ## Prerequisites
 
-Install the official MemPalace 3.6.0 release from PyPI with its optional Milvus dependencies. Version 3.6.0 is the first published release that includes the Milvus backend.
+Install MemPalace with its optional Milvus dependencies from PyPI.
 
 ```python
 %%capture
@@ -21,16 +21,6 @@ Install the official MemPalace 3.6.0 release from PyPI with its optional Milvus 
 > If you are using Google Colab, to enable dependencies just installed, you may need to **restart the runtime** (click on the "Runtime" menu at the top of the screen, and select "Restart session" from the dropdown menu).
 
 This tutorial uses MemPalace's local embedding model, so you do not need an external model API key. The first run may download a small ONNX embedding model.
-
-Verify that the notebook is running with the published MemPalace release and its Milvus dependencies.
-
-```python
-from importlib.metadata import version
-
-print("MemPalace version:", version("mempalace"))
-print("PyMilvus version:", version("pymilvus"))
-print("Milvus Lite version:", version("milvus-lite"))
-```
 
 ## Configure MemPalace to use Milvus
 
@@ -328,4 +318,4 @@ mempalace search "How do we deploy memory?" --backend milvus
 
 ## Conclusion
 
-MemPalace gives agents a structured way to preserve project context: wings keep domains separate, rooms make memory scoping explicit, and drawers keep the original text available for retrieval. Starting with the official MemPalace 3.6.0 release, Milvus provides the storage and search layer behind that structure, combining vector search, metadata filtering, and lexical retrieval in one backend. Milvus Lite keeps the notebook simple, while the same integration path can scale to Milvus server or Zilliz Cloud when the memory layer needs to serve a team or a production agent workflow.
+MemPalace gives agents a structured way to preserve project context: wings keep domains separate, rooms make memory scoping explicit, and drawers keep the original text available for retrieval. Milvus provides the storage and search layer behind that structure, combining vector search, metadata filtering, and lexical retrieval in one backend. Milvus Lite keeps the notebook simple, while the same integration path can scale to Milvus server or Zilliz Cloud when the memory layer needs to serve a team or a production agent workflow.
