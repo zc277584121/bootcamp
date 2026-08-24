@@ -27,14 +27,7 @@ You need:
 - A PostgreSQL database and its `postgresql+asyncpg://...` connection URL
 - An OpenAI API key
 
-Milvus support has been merged into Basic Memory but is not yet available in its current PyPI release. Until the next release is published, install the tested upstream commit that includes the Milvus restart fix:
-
-```bash
-uv tool install --python 3.12 \
-  "basic-memory[milvus] @ git+https://github.com/basicmachines-co/basic-memory.git@eedce9bb92750282ceec73f420bb6ef05e954d4c"
-```
-
-After Basic Memory publishes a release containing the integration, the installation can be simplified to:
+Install Basic Memory with its Milvus optional dependencies from PyPI:
 
 ```bash
 uv tool install --python 3.12 "basic-memory[milvus]"
