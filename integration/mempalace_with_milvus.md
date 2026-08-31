@@ -15,6 +15,12 @@ uv tool install "mempalace[milvus]"
 mempalace --version
 ```
 
+Reference output (the installed version may differ):
+
+```text
+MemPalace 3.8.0
+```
+
 You also need Git to download the documentation corpus.
 
 This tutorial uses MemPalace's local MiniLM embedding model, so it does not require an external model API key. The first mining or search command may download a small ONNX embedding model.
@@ -80,16 +86,21 @@ Confirm the number of source pages:
 find "$PROJECT_DIR" -type f -name "*.md" | wc -l
 ```
 
+Reference output:
+
+```text
+31
+```
+
 The exact count may change as the Milvus documentation branch is updated.
 
 ## Define the MemPalace rooms
 
-MemPalace can detect rooms during `mempalace init`, but its initialization flow also performs project-wide heuristic entity classification and writes the accepted results to an entity registry. That classification step is not needed to define this documentation corpus, so we provide the small taxonomy directly. During mining, MemPalace may still attach deterministic structural entity metadata and build internal hallway links; those associations do not decide which room receives a file or change the room-scoped searches below.
+MemPalace can detect rooms during `mempalace init`, but its initialization flow also performs project-wide heuristic entity classification and writes the accepted results to an entity registry. That classification step is not needed to define this documentation corpus, so we provide the small taxonomy directly. During mining, MemPalace may still attach deterministic heuristic entity metadata and build internal hallway links; those associations do not decide which room receives a file or change the room-scoped searches below.
 
-Create `$PROJECT_DIR/mempalace.yaml`:
+Create `$PROJECT_DIR/mempalace.yaml` with the following content:
 
-```shell
-cat > "$PROJECT_DIR/mempalace.yaml" <<'YAML'
+```yaml
 wing: milvus_analyzer_docs
 rooms:
   - name: analyzer
@@ -107,7 +118,6 @@ rooms:
   - name: general
     description: Analyzer documentation that does not fit another room
     keywords: []
-YAML
 ```
 
 The wing represents the whole documentation corpus. A room represents a topic area. MemPalace routes a file by checking its directory first, then its filename, then room keywords in its content. A file under `filter/`, for example, goes directly to the `filter` room.
@@ -125,12 +135,43 @@ mempalace \
   --backend milvus
 ```
 
+Reference output from the validated documentation snapshot:
+
+```text
+=======================================================
+  Done.
+  Files processed: 31
+  Files skipped (already filed or other): 0
+  Drawers filed: 473
+
+  By room:
+    filter               16 files
+    analyzer              8 files
+    tokenizer             7 files
+=======================================================
+```
+
 MemPalace reads the Markdown without summarizing or rewriting it, computes local embeddings, and stores the drawers in Milvus. On the tested documentation snapshot, 31 files produced 473 drawers.
 
 Check the resulting rooms and drawer counts:
 
 ```shell
 mempalace --palace "$PALACE_DIR" status --backend milvus
+```
+
+Reference output:
+
+```text
+=======================================================
+  MemPalace Status -- 473 drawers
+=======================================================
+
+  WING: milvus_analyzer_docs
+    ROOM: analyzer               212 drawers
+    ROOM: filter                 156 drawers
+    ROOM: tokenizer              105 drawers
+
+=======================================================
 ```
 
 The exact drawer count can change when the upstream documentation changes because longer pages produce more chunks.
@@ -146,6 +187,21 @@ mempalace \
   --backend milvus \
   --wing milvus_analyzer_docs \
   --results 3
+```
+
+Reference output (scores may vary):
+
+```text
+Results for: "How should I analyze documents that mix several languages?"
+Wing: milvus_analyzer_docs
+
+[1] milvus_analyzer_docs / analyzer
+    Source: multi-language-analyzers.md
+    Match: cosine_sim=0.334 bm25=2.469
+[2] milvus_analyzer_docs / analyzer
+    Source: multi-language-analyzers.md
+[3] milvus_analyzer_docs / analyzer
+    Source: multi-language-analyzers.md
 ```
 
 In the validated run, all three results came from `multi-language-analyzers.md`, even though the corpus also contained pages for individual language analyzers, tokenizers, and filters.
@@ -164,6 +220,22 @@ mempalace \
   --results 3
 ```
 
+Reference output (scores may vary):
+
+```text
+Results for: "How can equivalent terms such as USA and United States match one another?"
+Wing: milvus_analyzer_docs
+Room: filter
+
+[1] milvus_analyzer_docs / filter
+    Source: synonym-filter.md
+    Match: cosine_sim=0.765 bm25=2.573
+[2] milvus_analyzer_docs / filter
+    Source: stemmer-filter.md
+[3] milvus_analyzer_docs / filter
+    Source: stop-filter.md
+```
+
 The top result should come from `synonym-filter.md`. The room constraint is applied through drawer metadata before the vector search, so tokenizer and language-analyzer drawers are excluded from this search.
 
 ## Search for exact terms
@@ -180,16 +252,29 @@ mempalace \
   --results 3
 ```
 
+Reference output (scores may vary):
+
+```text
+Results for: "language_identifier tokenizer"
+Wing: milvus_analyzer_docs
+Room: tokenizer
+
+[1] milvus_analyzer_docs / tokenizer
+    Source: language-identifier.md
+    Match: cosine_sim=0.420 bm25=0.969
+[2] milvus_analyzer_docs / tokenizer
+    Source: language-identifier.md
+[3] milvus_analyzer_docs / tokenizer
+    Source: lindera-tokenizer.md
+```
+
 The results should favor `language-identifier.md`, which documents the `language_identifier` tokenizer used to select analyzers based on detected language.
 
 ## Inspect the Milvus collections
 
-MemPalace manages its Milvus schema automatically. To confirm what was stored, open the same Milvus Lite database with `MilvusClient`, inspect the collections, and count drawers by room:
+MemPalace manages its Milvus schema automatically. To confirm what was stored, save the following script as `inspect_milvus.py`. It opens the same Milvus Lite database, inspects the collections, and counts drawers by room:
 
-```shell
-export MEMPALACE_MILVUS_LITE_PATH="$PALACE_DIR/milvus.db"
-
-uv tool run --from "mempalace[milvus]" python - <<'PY'
+```python
 import os
 from collections import Counter
 
@@ -213,7 +298,21 @@ rows = client.query(
 )
 room_counts = Counter(row["metadata"]["room"] for row in rows)
 print("Drawers by room:", dict(sorted(room_counts.items())))
-PY
+```
+
+Run the script with the same optional dependency set used by the CLI:
+
+```shell
+export MEMPALACE_MILVUS_LITE_PATH="$PALACE_DIR/milvus.db"
+uv run --with "mempalace[milvus]" inspect_milvus.py
+```
+
+Reference output:
+
+```text
+mempalace_closets: rows=74, fields=['id', 'document', 'metadata', 'vector', 'sparse']
+mempalace_drawers: rows=473, fields=['id', 'document', 'metadata', 'vector', 'sparse']
+Drawers by room: {'analyzer': 212, 'filter': 156, 'tokenizer': 105}
 ```
 
 For the tested documentation snapshot, `mempalace_drawers` contained 473 rows and `mempalace_closets` contained 74 internal navigation records. Closet and drawer counts do not need to match. The drawer metadata showed 212 drawers in `analyzer`, 156 in `filter`, and 105 in `tokenizer`.
