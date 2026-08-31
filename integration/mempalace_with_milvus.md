@@ -12,13 +12,6 @@ Install MemPalace with its optional Milvus dependencies from PyPI. The command i
 
 ```shell
 uv tool install "mempalace[milvus]"
-mempalace --version
-```
-
-Reference output (the installed version may differ):
-
-```text
-MemPalace 3.8.0
 ```
 
 You also need Git to download the documentation corpus.
@@ -344,4 +337,4 @@ The end-to-end commands in this tutorial were validated with Milvus Lite. The se
 
 ## Conclusion
 
-MemPalace gives agents a structured way to preserve project knowledge: a wing separates the corpus, rooms provide topic-level scope, and drawers retain the original source text. In this example, 31 closely related Milvus documentation pages become hundreds of searchable drawers rather than a few hand-written records. Milvus provides persistent vector, sparse, text, and metadata storage behind that structure, while Milvus Lite keeps the complete workflow local and lightweight.
+MemPalace gives agents a structured way to preserve project knowledge: a wing separates the corpus, rooms provide topic-level scope, and drawers retain the original source text. In this example, 31 closely related Milvus documentation pages become hundreds of searchable drawers rather than a few hand-written records. Milvus provides persistent vector, sparse, text, and metadata storage behind that structure.
